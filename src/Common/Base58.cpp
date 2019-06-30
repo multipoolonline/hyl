@@ -1,8 +1,9 @@
-// Copyright (c) 2011-2016 The Cryptonote developers
+// Copyright (c) 2012-2013 The Cryptonote developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "Base58.h"
+
+#include "base58.h"
 
 #include <assert.h>
 #include <string>
@@ -10,11 +11,12 @@
 
 #include "crypto/hash.h"
 #include "int-util.h"
-#include "Varint.h"
+#include "util.h"
+#include "varint.h"
 
-namespace Tools
+namespace tools
 {
-  namespace Base58
+  namespace base58
   {
     namespace
     {
@@ -108,7 +110,7 @@ namespace Tools
 
       void encode_block(const char* block, size_t size, char* res)
       {
-        assert(1 <= size && size <= full_block_size);
+        assert(1 <= size && size <= sizeof(full_block_size));
 
         uint64_t num = uint_8be_to_64(reinterpret_cast<const uint8_t*>(block), size);
         int i = static_cast<int>(encoded_block_sizes[size]) - 1;
@@ -214,7 +216,7 @@ namespace Tools
     {
       std::string buf = get_varint_data(tag);
       buf += data;
-      Crypto::Hash hash = Crypto::cn_fast_hash(buf.data(), buf.size());
+      crypto::hash hash = crypto::cn_fast_hash(buf.data(), buf.size());
       const char* hash_data = reinterpret_cast<const char*>(&hash);
       buf.append(hash_data, addr_checksum_size);
       return encode(buf);
@@ -231,11 +233,11 @@ namespace Tools
       checksum = addr_data.substr(addr_data.size() - addr_checksum_size);
 
       addr_data.resize(addr_data.size() - addr_checksum_size);
-      Crypto::Hash hash = Crypto::cn_fast_hash(addr_data.data(), addr_data.size());
+      crypto::hash hash = crypto::cn_fast_hash(addr_data.data(), addr_data.size());
       std::string expected_checksum(reinterpret_cast<const char*>(&hash), addr_checksum_size);
       if (expected_checksum != checksum) return false;
 
-      int read = Tools::read_varint(addr_data.begin(), addr_data.end(), tag);
+      int read = tools::read_varint(addr_data.begin(), addr_data.end(), tag);
       if (read <= 0) return false;
 
       data = addr_data.substr(read);
